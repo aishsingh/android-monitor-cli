@@ -1,5 +1,7 @@
 #include <ncurses.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
 
 #define COLOR_BLUE_NEW 20
 #define COLOR_RED_NEW 21
@@ -23,7 +25,7 @@ bool handleInput() {
 
 int main(int argc, char **argv)
 {
-    if (argc == 1) {
+    if ((argc == 1) || (strcmp(argv[1], "--help") == 0)) {
         printUsage();
         return -1;
     }
@@ -31,7 +33,13 @@ int main(int argc, char **argv)
     // Fetch data through adb
     FILE *fp;
     char buf[128];
-    if ((fp = popen("adb devices", "r")) == NULL) {
+    char *cmd_adb = (char *) "adb shell dumpsys meminfo ";
+    char *cmd = (char *) malloc(1 + strlen(cmd_adb) + strlen(argv[1]));
+    strcpy(cmd, cmd_adb);
+    strcat(cmd, argv[1]);
+    printf("CMD: %s\n", cmd);
+
+    if ((fp = popen(cmd, "r")) == NULL) {
         printf("Error opening pipe!\n");
         return -1;
     }
@@ -39,10 +47,13 @@ int main(int argc, char **argv)
         printf("OUTPUT: %s", buf);
     }
     if(pclose(fp))  {
-        printf("Command not found or exited with error status\n");
+        // Command exited with error status
+        printf("Please ensure the android-sdk is installed and adb can detect your device.");
+        printf("\n");
+        printf("Use --help flag for usage information");
         return -1;
     }
-
+    free(cmd);
 
     bool running = true;
     while (running) {
