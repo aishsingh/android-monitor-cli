@@ -1,8 +1,8 @@
 #include <ncurses.h>
 #include <stdio.h>
 
-#define COLOR_BLUE_NEW 8
-#define COLOR_RED_NEW 9
+#define COLOR_BLUE_NEW 20
+#define COLOR_RED_NEW 21
 #define VERSION "Pre-alpha"
 
 
