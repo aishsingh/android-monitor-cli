@@ -1,11 +1,13 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-typedef struct process {
+typedef struct Process {
     int mem_total;
-    int mem_swap;
-} process;
+    int mem_alloc;
+    int mem_free;
+    int cpu_usage;
+} Process;
 
-process fetchData(char *package);
+Process fetchData(char *package);
 
 #endif /* PROCESS_H */

@@ -30,35 +30,39 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    // Fetch data through adb
-    process result = fetchData(argv[1]);
-    printf("MEMORY:\nTotal = %d KB\nSwap = %d KB\n", result.mem_total, result.mem_swap);
+    initscr();          /* Start curses mode        */
+    raw();              /* Line buffering disabled  */
+    noecho();           /* Don't echo() while we do getch */
+    curs_set(0);
+    timeout(1000);
+
+    start_color();
+    use_default_colors();  // Enable transparency
+    init_color(COLOR_BLUE_NEW, 535, 727, 875);
+    init_color(COLOR_RED_NEW, 875, 340, 309);
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);     // Normal colour
+    init_pair(2, COLOR_BLUE_NEW, COLOR_BLACK);  // Memory colour
+    init_pair(3, COLOR_RED_NEW, COLOR_BLACK);   // CPU colour
+
+    int win_w, win_h;
+    getmaxyx(stdscr, win_h, win_w);
+
+    Process data = {0};
 
     bool running = true;
+    int elapsed_time = 0;
     while (running) {
-        initscr();          /* Start curses mode        */
-        raw();              /* Line buffering disabled  */
-        noecho();           /* Don't echo() while we do getch */
-
-        start_color();
-        use_default_colors();  // Enable transparency
-        init_color(COLOR_BLUE_NEW, 535, 727, 875);
-        init_color(COLOR_RED_NEW, 875, 340, 309);
-        init_pair(1, COLOR_WHITE, COLOR_BLACK);     // Normal colour
-        init_pair(2, COLOR_BLUE_NEW, COLOR_BLACK);  // Memory colour
-        init_pair(3, COLOR_RED_NEW, COLOR_BLACK);   // CPU colour
-
+        // Setup headings
         attron(A_BOLD);
         attron(COLOR_PAIR(2));
-        mvprintw(0, 0, "Memory\n");
+        mvprintw(0, 0, "Memory: %d KB\n", data.mem_alloc);
         attron(COLOR_PAIR(3));
-        mvprintw(10, 0, "CPU\n");
+        mvprintw(10, 0, "CPU: %d \%\n", data.cpu_usage);
         attroff(COLOR_PAIR(3));
         attroff(A_BOLD);
+        mvprintw(21, win_w-20, "Elapsed time: %d s", elapsed_time);
 
-        int win_w, win_h;
-        getmaxyx(stdscr, win_h, win_w);
-
+        // Setup lines
         attron(COLOR_PAIR(2));
         for (int j = 0;  j < win_w;  ++j)
             mvaddch (9, j, ACS_HLINE);
@@ -69,9 +73,15 @@ int main(int argc, char **argv)
 
         running = handleInput();
 
+        // Refresh
+        data = fetchData(argv[1]); // Fetch data through adb
         refresh();
+        elapsed_time++;
     }
-
     endwin();
+
+    printf("MEMORY: Alloc = %d KB, Free = %d KB\n", data.mem_alloc, data.mem_free);
+    printf("CPU: Usage = %d \%\n", data.cpu_usage);
+
     return 0;
 }

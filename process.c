@@ -4,9 +4,10 @@
 
 #include "process.h"
 
-process fetchData(char *package) {
-    process data;
+Process fetchData(char *package) {
+    Process data = {0};
 
+    // Get Memory data
     FILE *fp;
     char buf[128];
     char *cmd_adb = (char *) "adb shell dumpsys meminfo ";
@@ -24,19 +25,22 @@ process fetchData(char *package) {
         // printf("OUTPUT: %s", buf);
 
         char *s;
-        if ((s = strstr(buf, "TOTAL:")) != NULL) {
-            sscanf(s+6,"%d %*s %*s %*s %d", &data.mem_total, &data.mem_swap);
+        if ((s = strstr(buf, "TOTAL")) != NULL) {
+            sscanf(s+6,"%*d %*d %*d %*d %d %d %d", &data.mem_total, &data.mem_alloc, &data.mem_free);
             break;
         }
     }
 
     if(pclose(fp))  {
         // Command exited with error status
-        printf("Please ensure the android-sdk is installed and adb can detect your device.");
+        printf("Please ensure the android-sdk is installed and adb can detect your device.\n");
         printf("\n");
         printf("Use --help flag for usage information");
         exit(EXIT_FAILURE);
     }
+
+    // Get CPU data
+    // TODO
 
     free(cmd);
     return data;
